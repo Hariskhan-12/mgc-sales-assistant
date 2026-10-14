@@ -1,8 +1,3 @@
-"""
-Programmatic price calculator for MGC Aurora Heights.
-All arithmetic happens here — never in the LLM.
-"""
-
 BASE_PRICES = {
     ("Studio", "A"):          {"sqft": 480,  "price": 8_640_000},
     ("1-Bed Standard", "A"):  {"sqft": 720,  "price": 13_320_000},
@@ -29,8 +24,7 @@ def calculate_unit_price(
 ) -> dict:
     key = (unit_type, block.upper())
     if key not in BASE_PRICES:
-        return {"error": f"{unit_type} is not available in Block {block.upper()}. "
-                         f"Check 02_price_list_payment_plan.md — Base Prices."}
+        return {"error": f"{unit_type} is not available in Block {block.upper()}."}
 
     info = BASE_PRICES[key]
     base = info["price"]
@@ -39,16 +33,16 @@ def calculate_unit_price(
     premiums = []
     premium_rate = 0.0
 
-    sources.append(f"02_price_list_payment_plan.md § Base Prices (Block {block.upper()})")
+    sources.append(f"02_price_list_payment_plan.md - Base Prices (Block {block.upper()})")
 
-    # --- location premiums (cumulative, on base price) ---
+    # Location premiums (cumulative, on base price)
     if floor is not None:
         if 13 <= floor <= 19:
             premium_rate += 0.04
-            premiums.append({"label": f"Floor {floor} (floors 13–19)", "rate": 0.04, "amount": round(base * 0.04)})
+            premiums.append({"label": f"Floor {floor} (floors 13-19)", "rate": 0.04, "amount": round(base * 0.04)})
         elif 20 <= floor <= 22:
             premium_rate += 0.07
-            premiums.append({"label": f"Floor {floor} (floors 20–22)", "rate": 0.07, "amount": round(base * 0.07)})
+            premiums.append({"label": f"Floor {floor} (floors 20-22)", "rate": 0.07, "amount": round(base * 0.07)})
 
     if is_corner:
         premium_rate += 0.03
@@ -59,11 +53,11 @@ def calculate_unit_price(
         premiums.append({"label": "Margalla-facing", "rate": 0.06, "amount": round(base * 0.06)})
 
     if premiums:
-        sources.append("02_price_list_payment_plan.md § Location Premiums")
+        sources.append("02_price_list_payment_plan.md - Location Premiums")
 
     premium_amount = round(base * premium_rate)
 
-    # --- discounts (on base price only; premiums are NOT discounted) ---
+    # Discounts apply on base price only, premiums are not discounted
     discount_rate = 0.0
     discounts = []
 
@@ -83,13 +77,12 @@ def calculate_unit_price(
         discounts.append({"label": "Second unit by same buyer", "rate": 0.015})
 
     if discounts:
-        sources.append("02_price_list_payment_plan.md § Discounts")
+        sources.append("02_price_list_payment_plan.md - Discounts")
 
     discount_amount = round(base * discount_rate)
     discounted_base = base - discount_amount
     total_unit_price = discounted_base + premium_amount
 
-    # --- payment plan ---
     plan = {
         "booking_10pct":       round(total_unit_price * 0.10),
         "confirmation_10pct":  round(total_unit_price * 0.10),
@@ -97,16 +90,15 @@ def calculate_unit_price(
         "quarterly_instalments_total_60pct": round(total_unit_price * 0.60),
         "possession_20pct":    round(total_unit_price * 0.20),
     }
-    sources.append("02_price_list_payment_plan.md § Standard Payment Plan (4 years)")
+    sources.append("02_price_list_payment_plan.md - Standard Payment Plan (4 years)")
 
-    # --- other charges ---
     maintenance_advance = round(12 * 9.50 * sqft)
     other_charges = {
         "utility_connection": 285_000,
         "parking_mandatory":  1_450_000,
         "maintenance_advance_12mo": maintenance_advance,
     }
-    sources.append("02_price_list_payment_plan.md § Other Charges")
+    sources.append("02_price_list_payment_plan.md - Other Charges")
 
     return {
         "unit_type": unit_type,
@@ -128,7 +120,7 @@ def calculate_unit_price(
 
 
 def format_pkr(amount: int) -> str:
-    """Format amount in Pakistani convention: 1,23,45,678"""
+    """Pakistani number format: 1,23,45,678"""
     s = str(amount)
     if len(s) <= 3:
         return s

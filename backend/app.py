@@ -1,34 +1,31 @@
-"""
-FastAPI application — ties together the document assistant and lead scorer.
-Part 4: one page where a salesperson can ask questions and score leads.
-"""
-
-import os
+import sys
 from pathlib import Path
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi import FastAPI
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
-load_dotenv()
+BACKEND_DIR = Path(__file__).parent
+PROJECT_DIR = BACKEND_DIR.parent
+FRONTEND_DIR = PROJECT_DIR / "frontend" / "out"
 
+load_dotenv(PROJECT_DIR / ".env")
+
+sys.path.insert(0, str(BACKEND_DIR))
 from assistant import DocumentAssistant
-from ml_model import score_lead
-
-BASE_DIR = Path(__file__).parent
-FRONTEND_DIR = BASE_DIR / "frontend" / "out"
+from ml import score_lead
 
 app = FastAPI(title="MGC Sales Assistant")
 
-assistant = None
+_assistant = None
 
 
 def get_assistant():
-    global assistant
-    if assistant is None:
-        assistant = DocumentAssistant()
-    return assistant
+    global _assistant
+    if _assistant is None:
+        _assistant = DocumentAssistant()
+    return _assistant
 
 
 class QuestionRequest(BaseModel):

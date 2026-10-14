@@ -1,8 +1,3 @@
--- MGC Leads CRM Schema
--- One table is defensible: every column describes a single lead record.
--- Normalization into separate tables (sources, cities, agents) would help
--- at scale but adds complexity without benefit for ~9K rows.
-
 CREATE TABLE leads (
     lead_id              VARCHAR(20)   PRIMARY KEY,
     created_at           TIMESTAMP     NOT NULL,
@@ -24,10 +19,7 @@ CREATE TABLE leads (
     token_amount_pkr     DECIMAL(15,2) DEFAULT 0,
     converted            BOOLEAN       DEFAULT FALSE,
 
-    -- Prevent the same real-world lead from being entered twice.
-    -- crm_record_hash is a fingerprint of the lead's identity fields
-    -- (name/phone/email, hashed upstream). A UNIQUE constraint here
-    -- stops duplicate inserts at the database level.
+    -- dedup: hash of identity fields (name/phone/email), reject duplicate inserts
     crm_record_hash      BIGINT        UNIQUE NOT NULL
 );
 
